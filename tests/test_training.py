@@ -41,7 +41,7 @@ def test_training_step():
     module = SegmentationModule(cfg)
 
     dummy_batch = (
-        torch.randn(4, 1, 64, 64, dtype=torch.float32),
+        torch.rand((4, 3, 64, 64), dtype=torch.float32),
         torch.randint(0, 2, (4, 64, 64), dtype=torch.float32),
     )
 
