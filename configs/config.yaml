@@ -1,0 +1,33 @@
+training:
+  lr: 1e-3
+  batch_size: 8
+  epochs: 50
+  optimizer: adam
+  scheduler: cosine
+  use_amp: true
+  use_ddp: true
+  num_gpus: 2
+
+model:
+  name: resunet
+  in_channels: 3
+  out_channels: 1
+
+loss:
+  focal_alpha: 0.75
+  focal_gamma: 2.0
+  dice_weight: 1.0
+  focal_weight: 1.0
+
+data:
+  train_path: data/train
+  val_path: data/val
+  augmentation: true
+
+metrics:
+  threshold: 0.5
+  average: micro
+
+system:
+  seed: 42
+  num_workers: 4
