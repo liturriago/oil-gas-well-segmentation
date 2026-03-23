@@ -2,6 +2,7 @@ import torch
 from torchmetrics import MetricCollection
 from torchmetrics.segmentation import DiceScore
 
+
 class ThresholdWrapper(torch.nn.Module):
     """
     Convierte probabilidades (N,1,H,W) → etiquetas (N,H,W)
@@ -31,9 +32,9 @@ def get_metrics(
 
     dice = DiceScore(
         num_classes=num_classes,
-        include_background=False,   # 🔥 SOLO foreground
+        include_background=False,  # 🔥 SOLO foreground
         average=average,
-        input_format="index",       # usamos (N,H,W)
+        input_format="index",  # usamos (N,H,W)
     )
 
     class WrappedMetric(torch.nn.Module):
