@@ -6,7 +6,7 @@
 
 # PyTorch Lightning Segmentation with MLOps
 
-A production-ready GitHub repository for training image segmentation models using PyTorch Lightning. Features include a customizable ResUNet architecture, combined Focal + Dice Loss, F1 and Dice metric tracking, and built-in support for Multi-GPU (DDP) and Mixed Precision (AMP) training.
+A production-ready GitHub repository for training image segmentation models using PyTorch Lightning. Features include a customizable ResUNet architecture, combined Focal + Dice Loss, Dice metric tracking, and built-in support for Multi-GPU (DDP) and Mixed Precision (AMP) training.
 
 ## 🚀 Key Features
 - **PyTorch Lightning**: Automated validation, logging, and hardware routing.

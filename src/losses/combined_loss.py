@@ -9,21 +9,32 @@ class DiceLoss(nn.Module):
         self.smooth = smooth
 
     def forward(self, logits, targets):
-        # logits are raw scores, so apply sigmoid
+        if targets.dim() == 3:
+            targets = targets.unsqueeze(1)
+
+        targets = targets.float()
+
         probs = torch.sigmoid(logits)
 
-        # Flatten predictions and targets
-        probs = probs.view(-1)
-        targets = targets.view(-1)
+        probs = probs.reshape(-1)
+        targets = targets.reshape(-1)
 
         intersection = (probs * targets).sum()
-        dice = (2.0 * intersection + self.smooth) / (probs.sum() + targets.sum() + self.smooth)
+        union = probs.sum() + targets.sum()
+
+        dice = (2.0 * intersection + self.smooth) / (union + self.smooth)
 
         return 1 - dice
 
 
 class CombinedLoss(nn.Module):
-    def __init__(self, focal_alpha=0.75, focal_gamma=2.0, dice_weight=1.0, focal_weight=1.0):
+    def __init__(
+        self,
+        focal_alpha=0.75,
+        focal_gamma=2.0,
+        dice_weight=1.0,
+        focal_weight=1.0,
+    ):
         super().__init__()
         self.focal_alpha = focal_alpha
         self.focal_gamma = focal_gamma
@@ -32,16 +43,19 @@ class CombinedLoss(nn.Module):
         self.dice_loss = DiceLoss()
 
     def forward(self, logits, targets):
-        # Focal Loss
+        if targets.dim() == 3:
+            targets = targets.unsqueeze(1)
+
+        targets = targets.float()
+
         focal = sigmoid_focal_loss(
             logits,
-            targets.float(),
+            targets,
             alpha=self.focal_alpha,
             gamma=self.focal_gamma,
             reduction="mean",
         )
 
-        # Dice Loss
         dice = self.dice_loss(logits, targets)
 
         return self.focal_weight * focal + self.dice_weight * dice
