@@ -1,6 +1,7 @@
 import torch
 from torchmetrics import MetricCollection
-from torchmetrics.classification import BinaryF1Score, MulticlassF1Score, Dice
+from torchmetrics.classification import BinaryF1Score, MulticlassF1Score
+from torchmetrics import Dice
 
 
 def get_metrics(num_classes: int = 1, threshold: float = 0.5, average: str = "micro"):
