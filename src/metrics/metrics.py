@@ -37,14 +37,23 @@ def get_metrics(
         input_format="index",  # usamos (N,H,W)
     )
 
-    class WrappedMetric(torch.nn.Module):
+    from torchmetrics import Metric
+
+    class WrappedMetric(Metric):
         def __init__(self, metric):
             super().__init__()
             self.metric = metric
 
-        def forward(self, preds, target):
+        def update(self, preds, target):
             preds = threshold_fn(preds)
-            return self.metric(preds, target)
+            self.metric.update(preds, target)
+
+        def compute(self):
+            return self.metric.compute()
+
+        def reset(self):
+            self.metric.reset()
+            super().reset()
 
     metrics = MetricCollection(
         {
