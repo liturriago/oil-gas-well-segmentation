@@ -1,5 +1,6 @@
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
+[![CI](https://img.shields.io/github/actions/workflow/status/liturriago/oil-gas-well-segmentation/ci.yaml?style=for-the-badge&logo=github)](https://github.com/liturriago/oil-gas-well-segmentation/actions/workflows/ci.yaml)
 
 ![Banner](./assets/banner.png)
 
