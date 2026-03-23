@@ -13,8 +13,5 @@ def get_metrics(num_classes: int = 1, threshold: float = 0.5, average: str = "mi
     else:
         f1 = MulticlassF1Score(num_classes=num_classes, average=average)
         dice = Dice(num_classes=num_classes, average=average)
-        
-    return MetricCollection({
-        "f1": f1,
-        "dice": dice
-    })
+
+    return MetricCollection({"f1": f1, "dice": dice})

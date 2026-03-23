@@ -11,14 +11,14 @@ class DiceLoss(nn.Module):
     def forward(self, logits, targets):
         # logits are raw scores, so apply sigmoid
         probs = torch.sigmoid(logits)
-        
+
         # Flatten predictions and targets
         probs = probs.view(-1)
         targets = targets.view(-1)
-        
+
         intersection = (probs * targets).sum()
-        dice = (2. * intersection + self.smooth) / (probs.sum() + targets.sum() + self.smooth)
-        
+        dice = (2.0 * intersection + self.smooth) / (probs.sum() + targets.sum() + self.smooth)
+
         return 1 - dice
 
 
@@ -34,14 +34,14 @@ class CombinedLoss(nn.Module):
     def forward(self, logits, targets):
         # Focal Loss
         focal = sigmoid_focal_loss(
-            logits, 
-            targets.float(), 
-            alpha=self.focal_alpha, 
-            gamma=self.focal_gamma, 
-            reduction="mean"
+            logits,
+            targets.float(),
+            alpha=self.focal_alpha,
+            gamma=self.focal_gamma,
+            reduction="mean",
         )
-        
+
         # Dice Loss
         dice = self.dice_loss(logits, targets)
-        
+
         return self.focal_weight * focal + self.dice_weight * dice

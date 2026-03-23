@@ -9,15 +9,11 @@ def get_callbacks():
         filename="best-model-{epoch:02d}-{val_f1:.4f}",
         save_top_k=1,
         monitor="val_f1",
-        mode="max"
+        mode="max",
     )
-    
-    early_stop = EarlyStopping(
-        monitor="val_f1",
-        patience=10,
-        mode="max"
-    )
-    
+
+    early_stop = EarlyStopping(monitor="val_f1", patience=10, mode="max")
+
     lr_monitor = LearningRateMonitor(logging_interval="step")
-    
+
     return [checkpoint, early_stop, lr_monitor]
