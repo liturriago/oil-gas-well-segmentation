@@ -41,11 +41,11 @@ def test_training_step():
     module = SegmentationModule(cfg)
 
     dummy_batch = (
-        torch.randn(2, 3, 64, 64),
-        torch.randint(0, 2, (2, 1, 64, 64), dtype=torch.float32),
+        torch.randn(4, 1, 64, 64, dtype=torch.float32),
+        torch.randint(0, 2, (4, 64, 64), dtype=torch.float32),
     )
 
-    loss = module.training_step(dummy_batch, batch_idx=0)
+    loss = module.training_step(dummy_batch)
 
     assert loss is not None
     assert isinstance(loss, torch.Tensor)

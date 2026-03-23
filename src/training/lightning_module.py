@@ -30,7 +30,7 @@ class SegmentationModule(pl.LightningModule):
         )
 
         # Metrics
-        num_classes = cfg.model.out_channels
+        num_classes = cfg.model.out_channels + 1
         self.train_metrics = get_metrics(
             num_classes, threshold=cfg.metrics.threshold, average=cfg.metrics.average
         )
@@ -39,7 +39,7 @@ class SegmentationModule(pl.LightningModule):
     def forward(self, x):
         return self.model(x)
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch):
         x, y = batch
         logits = self(x)
 
@@ -55,7 +55,7 @@ class SegmentationModule(pl.LightningModule):
 
         # Calculate metrics
         preds = torch.sigmoid(logits)
-        self.train_metrics(preds, y.long() if self.cfg.model.out_channels > 1 else y.int())
+        self.train_metrics(preds, y.long())
         self.log_dict(
             {f"train_{k}": v for k, v in self.train_metrics.compute().items()},
             on_step=False,
@@ -68,7 +68,7 @@ class SegmentationModule(pl.LightningModule):
     def on_train_epoch_end(self):
         self.train_metrics.reset()
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch):
         x, y = batch
         logits = self(x)
 
@@ -84,7 +84,7 @@ class SegmentationModule(pl.LightningModule):
 
         # Calculate metrics
         preds = torch.sigmoid(logits)
-        self.val_metrics(preds, y.long() if self.cfg.model.out_channels > 1 else y.int())
+        self.val_metrics(preds, y.long())
         self.log_dict(
             {f"val_{k}": v for k, v in self.val_metrics.compute().items()},
             on_step=False,

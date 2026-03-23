@@ -46,6 +46,8 @@ def get_metrics(
 
         def update(self, preds, target):
             preds = threshold_fn(preds)
+            if target.shape != preds.shape:
+                target = target.view_as(preds)
             self.metric.update(preds, target)
 
         def compute(self):
