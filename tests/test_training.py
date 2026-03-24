@@ -14,13 +14,13 @@ def test_config_loading():
     cfg = Config(**cfg_python)
 
     assert cfg.training.lr > 0
-    assert cfg.model.name == "resunet"
+    assert cfg.model.backbone_name == "resnet34"
     assert cfg.loss.focal_weight >= 0
 
 
 def test_model_forward():
     """Test a simple forward pass through the model to check connectivity."""
-    model = ResUNet(in_channels=4, out_channels=1, backbone_name="resnet18", pretrained=False)
+    model = ResUNet(in_channels=4, out_channels=1, backbone_name="resnet34", pretrained=False)
 
     # 1 batch, 3 channels, 64x64 image
     dummy_input = torch.randn(2, 4, 64, 64)
@@ -34,8 +34,6 @@ def test_training_step():
     """Test a single training step on a dummy batch."""
     cfg_raw = OmegaConf.load("configs/config.yaml")
     cfg_python = OmegaConf.to_container(cfg_raw, resolve=True)
-    # Patch config to make it run faster
-    cfg_python["model"]["name"] = "resnet18"
     cfg = Config(**cfg_python)
 
     module = SegmentationModule(cfg)

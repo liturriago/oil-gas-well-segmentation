@@ -13,7 +13,7 @@ class TrainingConfig(BaseModel):
 
 
 class ModelConfig(BaseModel):
-    name: str
+    backbone_name: str
     in_channels: int = Field(..., gt=0)
     out_channels: int = Field(..., gt=0)
 

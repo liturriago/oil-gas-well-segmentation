@@ -17,7 +17,7 @@ class SegmentationModule(pl.LightningModule):
         self.model = ResUNet(
             in_channels=cfg.model.in_channels,
             out_channels=cfg.model.out_channels,
-            backbone_name=cfg.model.name,
+            backbone_name=cfg.model.backbone_name,
             pretrained=True,
         )
 

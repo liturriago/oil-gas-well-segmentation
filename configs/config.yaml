@@ -9,7 +9,7 @@ training:
   num_gpus: 2
 
 model:
-  name: resunet
+  backbone_name: resnet34
   in_channels: 4
   out_channels: 1
 
