@@ -100,7 +100,6 @@ def _run(cfg: Config) -> None:
         dice_weight=cfg.loss.dice_weight,
         focal_weight=cfg.loss.focal_weight,
         dice_smooth=cfg.loss.dice_smooth,
-        logit_clamp=cfg.training.logit_clamp,
     )
 
     # ------------------------------------------------------------------ Optimizer & Schedulers
@@ -146,7 +145,6 @@ def _run(cfg: Config) -> None:
             optimizer=optimizer,
             device=device,
             scaler=scaler,
-            grad_clip=cfg.training.grad_clip,
             epoch=epoch,
             use_amp=cfg.training.use_amp,
             metric_threshold=cfg.metrics.threshold,

@@ -21,7 +21,6 @@ import torch
 # Output type alias
 MetricsDict = dict[str, float | list[float]]
 
-
 def compute_segmentation_metrics(
     logits: torch.Tensor,
     targets: torch.Tensor,
@@ -57,72 +56,66 @@ def compute_segmentation_metrics(
           computation graph alive during metric collection.
         - All values are Python floats for easy serialisation / logging.
     """
-    # Detach from graph, work on floats
+    # Detach and move to CPU/Float for metric calculation
     logits = logits.detach().float()
     targets = targets.detach().float()
 
-    # Ensure consistent shape: (N, 1, H, W)
+    # Handle (N, H, W) -> (N, 1, H, W) if necessary
     if targets.dim() == 3:
         targets = targets.unsqueeze(1)
+    
+    if logits.shape != targets.shape:
+        raise ValueError(f"Shape mismatch: logits {logits.shape} vs targets {targets.shape}")
 
-    # 1. Sigmoid → threshold → binary
+    # 1. Sigmoid -> threshold -> binary predictions
     probs = torch.sigmoid(logits)
-    preds = (probs >= threshold).float()    # (N, 1, H, W)
-    gts = (targets >= 0.5).float()          # guard against non-binary targets
+    preds = (probs >= threshold).float()
+    
+    # Ensure targets are strictly binary (0 or 1)
+    gts = (targets >= 0.5).float()
 
     # ------------------------------------------------------------------
-    # Flatten spatial dims: (N, H*W)
+    # Flattening: We treat the entire batch as one pool of pixels
     # ------------------------------------------------------------------
     preds_flat = preds.view(-1)
     gts_flat = gts.view(-1)
 
     # ------------------------------------------------------------------
-    # Class 1 (foreground) confusion matrix entries
+    # Confusion Matrix for Class 1 (Foreground)
     # ------------------------------------------------------------------
     tp1 = (preds_flat * gts_flat).sum()
     fp1 = (preds_flat * (1.0 - gts_flat)).sum()
     fn1 = ((1.0 - preds_flat) * gts_flat).sum()
     tn1 = ((1.0 - preds_flat) * (1.0 - gts_flat)).sum()
 
-    # Class 0 (background) — the complement
-    tp0 = tn1
-    fp0 = fn1
-    fn0 = fp1
-    tn0 = tp1
+    # Confusion Matrix for Class 0 (Background) - The Inverse
+    tp0, fp0, fn0, tn0 = tn1, fn1, fp1, tp1
 
-    # ------------------------------------------------------------------
-    # Helper to safely divide
-    # ------------------------------------------------------------------
+    # Internal helper for safety
     def _safe_div(num: torch.Tensor, den: torch.Tensor) -> float:
         return (num / (den + epsilon)).item()
 
     # ------------------------------------------------------------------
-    # Dice
+    # Metric Calculations
     # ------------------------------------------------------------------
+    # Dice: 2*TP / (2*TP + FP + FN)
     dice_1 = _safe_div(2.0 * tp1, 2.0 * tp1 + fp1 + fn1)
     dice_0 = _safe_div(2.0 * tp0, 2.0 * tp0 + fp0 + fn0)
-    dice_macro = (dice_0 + dice_1) / 2.0
-
-    # ------------------------------------------------------------------
-    # Sensitivity (Recall)
-    # ------------------------------------------------------------------
+    
+    # Sensitivity (Recall): TP / (TP + FN)
     sens_1 = _safe_div(tp1, tp1 + fn1)
     sens_0 = _safe_div(tp0, tp0 + fn0)
-    sens_macro = (sens_0 + sens_1) / 2.0
-
-    # ------------------------------------------------------------------
-    # Specificity
-    # ------------------------------------------------------------------
+    
+    # Specificity: TN / (TN + FP)
     spec_1 = _safe_div(tn1, tn1 + fp1)
     spec_0 = _safe_div(tn0, tn0 + fp0)
-    spec_macro = (spec_0 + spec_1) / 2.0
 
     return {
-        "dice_macro": dice_macro,
-        "dice_per_class": [dice_0, dice_1],      # [background, foreground]
-        "sensitivity_macro": sens_macro,
+        "dice_macro": (dice_0 + dice_1) / 2.0,
+        "dice_per_class": [dice_0, dice_1],
+        "sensitivity_macro": (sens_0 + sens_1) / 2.0,
         "sensitivity_per_class": [sens_0, sens_1],
-        "specificity_macro": spec_macro,
+        "specificity_macro": (spec_0 + spec_1) / 2.0,
         "specificity_per_class": [spec_0, spec_1],
     }
 

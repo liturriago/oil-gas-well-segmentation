@@ -11,11 +11,9 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-
 # ---------------------------------------------------------------------------
 # Sub-schemas
 # ---------------------------------------------------------------------------
-
 
 class TrainingConfig(BaseModel):
     lr: float = Field(gt=0, description="Peak learning rate")
@@ -24,8 +22,6 @@ class TrainingConfig(BaseModel):
     optimizer: Literal["adam", "sgd", "adamw"] = "adam"
     scheduler: Literal["cosine", "step", "none"] = "cosine"
     use_amp: bool = True
-    grad_clip: float = Field(ge=0.0, description="Max gradient norm (0 = disabled)")
-    logit_clamp: float = Field(ge=0.0, description="Clamp logits to this range [-clamp, clamp] before loss")
 
 class ModelConfig(BaseModel):
     in_channels: int = Field(ge=1, description="Number of input channels (e.g. 4 for RGB+NIR)")
@@ -58,7 +54,6 @@ class MetricsConfig(BaseModel):
     threshold: float = Field(gt=0, lt=1, description="Sigmoid threshold for binarization")
     average: Literal["macro"] = "macro"
 
-
 class SystemConfig(BaseModel):
     seed: int = 42
     num_workers: int = Field(ge=0)
@@ -70,7 +65,6 @@ class SystemConfig(BaseModel):
 # Root config
 # ---------------------------------------------------------------------------
 
-
 class Config(BaseModel):
     """Root configuration model validated at training startup."""
 
@@ -80,8 +74,6 @@ class Config(BaseModel):
     data: DataConfig
     metrics: MetricsConfig
     system: SystemConfig
-
-
 
 def validate_config(cfg_dict: dict) -> Config:
     """Parse and validate a raw OmegaConf/dict config into a typed :class:`Config` object.

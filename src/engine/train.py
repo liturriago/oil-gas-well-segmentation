@@ -12,7 +12,6 @@ from tqdm import tqdm
 from src.losses.combined_loss import CombinedLoss
 from src.metrics.segmentation_metrics import MetricAccumulator, compute_segmentation_metrics
 
-
 def train_one_epoch(
     model: nn.Module,
     loader: torch.utils.data.DataLoader,
@@ -20,7 +19,6 @@ def train_one_epoch(
     optimizer: torch.optim.Optimizer,
     device: torch.device,
     scaler: GradScaler | None,
-    grad_clip: float = 0.0,
     epoch: int = 0,
     use_amp: bool = True,
     metric_threshold: float = 0.5,
@@ -34,7 +32,6 @@ def train_one_epoch(
         optimizer:        Configured optimizer.
         device:           Target device for tensors.
         scaler:           AMP gradient scaler (``None`` if AMP disabled).
-        grad_clip:        Max gradient norm (0 = disabled).
         epoch:            Current epoch index (for logging).
         use_amp:          Enable ``torch.amp.autocast``.
         metric_threshold: Threshold for binarising predictions.
@@ -55,26 +52,24 @@ def train_one_epoch(
         images: torch.Tensor = batch["image"].to(device, non_blocking=True)
         masks: torch.Tensor = batch["mask"].to(device, non_blocking=True)
 
-        optimizer.zero_grad(set_to_none=True)
+        optimizer.zero_grad()
 
-        # -------- Forward (with optional AMP) --------
-        with autocast("cuda", enabled=use_amp):
-            logits: torch.Tensor = model(images)
-            loss, components = criterion(logits, masks)
-
-        # -------- Backward --------
-        if scaler is not None:
-            scaler.scale(loss).backward()
-            if grad_clip > 0.0:
-                scaler.unscale_(optimizer)
-                nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
-            scaler.step(optimizer)
-            scaler.update()
+        if use_amp:
+            if scaler is None:
+                raise RuntimeError("AMP is enabled but scaler is not initialized.")
+            with autocast('cuda'):
+                logits = model(images)
+                loss, components = criterion(logits,masks)
+            if not torch.isnan(loss):
+                scaler.scale(loss).backward()
+                scaler.step(optimizer)
+                scaler.update()
         else:
-            loss.backward()
-            if grad_clip > 0.0:
-                nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
-            optimizer.step()
+            logits = model(images)
+            loss, components = criterion(logits,masks)
+            if not torch.isnan(loss):
+                loss.backward()
+                optimizer.step()
 
         # -------- Metrics --------
         with torch.no_grad():

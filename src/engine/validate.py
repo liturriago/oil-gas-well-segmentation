@@ -5,6 +5,7 @@ Validation loop: validate_one_epoch.
 from __future__ import annotations
 
 import torch
+import torch.nn as nn
 from torch.amp import autocast
 from tqdm import tqdm
 
@@ -49,9 +50,13 @@ def validate_one_epoch(
         images: torch.Tensor = batch["image"].to(device, non_blocking=True)
         masks: torch.Tensor = batch["mask"].to(device, non_blocking=True)
 
-        with autocast("cuda", enabled=use_amp):
-            logits: torch.Tensor = model(images)
-            loss, components = criterion(logits, masks)
+        if use_amp:
+            with autocast('cuda'):
+                logits = model(images)
+                loss, components = criterion(logits,masks)
+        else:
+            logits = model(images)
+            loss, components = criterion(logits,masks)
 
         batch_metrics = compute_segmentation_metrics(
             logits, masks, threshold=metric_threshold
