@@ -113,6 +113,7 @@ class CheckpointManager:
     def save(
         self,
         epoch: int,
+        last_epoch: bool,
         model: nn.Module,
         optimizer: torch.optim.Optimizer,
         scheduler: Any,
@@ -122,6 +123,7 @@ class CheckpointManager:
 
         Args:
             epoch:       Current epoch number (1-indexed).
+            last_epoch:  Whether this is the last epoch.
             model:       The model (DDP-wrapped or plain).
             optimizer:   Optimizer.
             scheduler:   LR scheduler.
@@ -142,7 +144,9 @@ class CheckpointManager:
         }
 
         # Always save last
-        save_checkpoint(self.checkpoint_dir, state, "last.pt")
+
+        if last_epoch:
+            save_checkpoint(self.checkpoint_dir, state, "last.pt")
 
         # Check if best
         current = self._get_monitor_value(val_metrics)

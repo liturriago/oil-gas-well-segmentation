@@ -185,7 +185,8 @@ def _run(cfg: Config) -> None:
 
         # ---- Logging & Checkpointing ----
         log_epoch(epoch, cfg.training.epochs, train_metrics, val_metrics, current_lr)
-    ckpt_manager.save(epoch, model, optimizer, main_sched, val_metrics)
+        is_last = epoch == cfg.training.epochs
+        ckpt_manager.save(epoch, is_last, model, optimizer, main_sched, val_metrics)
 
 
 # ---------------------------------------------------------------------------
