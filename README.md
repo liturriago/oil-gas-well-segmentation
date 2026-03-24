@@ -1,3 +1,9 @@
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)
+[![CI](https://img.shields.io/github/actions/workflow/status/liturriago/oil-gas-well-segmentation/ci.yaml?style=for-the-badge&logo=github)](https://github.com/liturriago/oil-gas-well-segmentation/actions/workflows/ci.yaml)
+
+![Banner](./assets/banner.png)
+
 # Oil & Gas Well Segmentation — Multispecral Satellite Imagery
 
 > **Binary segmentation of oil/gas wells from 4-channel (RGB + NIR) satellite imagery using ResUNet with PyTorch pure DDP.**
@@ -17,46 +23,6 @@
 | Configuration | Hydra + Pydantic v2 validation |
 | Dataset format | WebDataset (`.bin` / `.tar` shards, `.npy` keys) |
 | Augmentation | albumentations (paired image+mask transforms) |
-
----
-
-## Repository Structure
-
-```text
-oil-gas-well-segmentation/
-│
-├── src/
-│   ├── config/
-│   │   └── schema.py           # Pydantic v2 config schema
-│   ├── data/
-│   │   ├── dataset.py          # WebDataset pipeline + augmentation
-│   │   └── dataloader.py       # DataLoader factory (DDP-aware)
-│   ├── engine/
-│   │   ├── ddp_utils.py        # Process group, model wrapping, all-reduce
-│   │   ├── train.py            # train_one_epoch
-│   │   └── validate.py         # validate_one_epoch
-│   ├── losses/
-│   │   ├── dice_loss.py        # Batch-wise Dice Loss (logits → sigmoid internally)
-│   │   └── combined_loss.py    # Focal + Dice weighted sum
-│   ├── metrics/
-│   │   └── segmentation_metrics.py  # Dice, Sensitivity, Specificity + MetricAccumulator
-│   ├── models/
-│   │   └── resunet.py          # ResUNet with 4-ch encoder adaptation
-│   └── utils/
-│       ├── checkpoint.py       # CheckpointManager (best + last)
-│       └── logger.py           # Epoch table logger
-│
-├── configs/
-│   └── config.yaml             # Single source of truth for all hyperparameters
-│
-├── tests/
-│   ├── test_model.py
-│   ├── test_loss.py
-│   └── test_metrics.py
-│
-├── train.py                    # Hydra entry point (torchrun-compatible)
-└── pyproject.toml
-```
 
 ---
 
@@ -231,21 +197,6 @@ Input (N, 4, H, W)
 
 The NIR channel weight is initialised from the mean of the 3 pretrained RGB
 weights to preserve ImageNet pretraining benefits.
-
----
-
-## Dependencies
-
-| Package | Purpose |
-|---|---|
-| `torch` | Core deep learning |
-| `torchvision` | Pretrained encoders + Focal Loss |
-| `hydra-core` | Configuration management |
-| `pydantic` | Config schema validation |
-| `webdataset` | Streaming shard-based data loading |
-| `albumentations` | Paired image+mask augmentation |
-| `numpy` | Array operations |
-| `tqdm` | Progress bars |
 
 ---
 
