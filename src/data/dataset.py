@@ -33,7 +33,7 @@ class SegmentationDataset:
         dataset = wds.WebDataset(shard_path)
         if shuffle:
             dataset = dataset.shuffle(1000)
-            
+
         self.dataset = dataset.decode().map(self.preprocess)
 
     def normalize_per_channel(self, image: np.ndarray) -> np.ndarray:

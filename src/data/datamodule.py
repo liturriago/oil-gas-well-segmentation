@@ -31,7 +31,10 @@ class SegmentationDataModule(pl.LightningDataModule):
                 shuffle=True,
             )
             self.val_dataset = SegmentationDataset(
-                shard_path=self.val_path, augmentation=False, image_size=self.image_size, shuffle=False
+                shard_path=self.val_path,
+                augmentation=False,
+                image_size=self.image_size,
+                shuffle=False,
             )
 
     def train_dataloader(self):
