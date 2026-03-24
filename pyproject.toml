@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "Multispectal satellite image segmentation for oil/gas well detection using ResUNet + PyTorch DDP"
 readme = "README.md"
 requires-python = ">=3.10"
-authors = [{ name = "Lucas Iturriaga", email = "" }]
+authors = [{ name = "Lucas Iturriaga" }]
 license = { text = "MIT" }
 
 dependencies = [
