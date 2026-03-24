@@ -66,7 +66,7 @@ class CombinedLoss(nn.Module):
             targets = targets.unsqueeze(1)
         targets = targets.float()
 
-        with torch.cuda.amp.autocast(enabled=False):
+        with torch.amp.autocast(enabled=False):
 
             logits_fp32 = logits.float()
             targets_fp32 = targets.float()
