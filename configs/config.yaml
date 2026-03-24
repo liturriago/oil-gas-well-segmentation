@@ -28,8 +28,8 @@ loss:
   dice_smooth: 1.0e-6      # epsilon for dice denominator
 
 data:
-  train_path: data/train.tar
-  val_path: data/val.tar
+  train_path: /kaggle/input/datasets/lucasiturriago/albertawells/train.bin
+  val_path: /kaggle/input/datasets/lucasiturriago/albertawells/val.bin
   image_size: 256
   augmentation: true
 

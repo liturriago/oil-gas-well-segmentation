@@ -113,9 +113,10 @@ def _build_encoder(name: str, in_channels: int) -> tuple[nn.Module, list[int]]:
         bias=False,
     )
     with torch.no_grad():
-        # Copy RGB weights
-        new_conv.weight[:, :3, ...] = old_conv.weight[:, :3, ...]
-        # Extra channels: average of existing weights
+        # Copy as many RGB channels as the new conv can hold
+        n_copy = min(in_channels, 3)
+        new_conv.weight[:, :n_copy, ...] = old_conv.weight[:, :n_copy, ...]
+        # Extra channels beyond 3 (e.g. NIR): initialise from mean of RGB weights
         if in_channels > 3:
             extra = old_conv.weight.mean(dim=1, keepdim=True)
             for i in range(3, in_channels):
