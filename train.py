@@ -100,6 +100,8 @@ def _run(cfg: Config) -> None:
         dice_weight=cfg.loss.dice_weight,
         focal_weight=cfg.loss.focal_weight,
         dice_smooth=cfg.loss.dice_smooth,
+        dice_reduction=cfg.loss.dice_reduction,
+        focal_reduction=cfg.loss.focal_reduction,
     )
 
     # ------------------------------------------------------------------ Optimizer & Schedulers

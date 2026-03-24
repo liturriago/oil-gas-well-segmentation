@@ -22,6 +22,8 @@ loss:
   dice_weight: 1.0
   focal_weight: 1.0
   dice_smooth: 1.0e-6      # epsilon for dice denominator
+  dice_reduction: mean
+  focal_reduction: mean
 
 data:
   train_path: /kaggle/input/datasets/lucasiturriago/albertawells/train.bin

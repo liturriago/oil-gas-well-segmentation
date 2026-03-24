@@ -6,9 +6,7 @@ Validation is performed at training startup before any heavy computation.
 """
 
 from __future__ import annotations
-
 from typing import Literal
-
 from pydantic import BaseModel, Field, model_validator
 
 # ---------------------------------------------------------------------------
@@ -28,13 +26,14 @@ class ModelConfig(BaseModel):
     out_channels: int = Field(ge=1, description="Number of output segmentation classes")
     encoder: Literal["resnet18", "resnet34", "resnet50"] = "resnet34"
 
-
 class LossConfig(BaseModel):
     focal_alpha: float = Field(gt=0, le=1, description="Focal loss alpha (class weighting)")
     focal_gamma: float = Field(ge=0, description="Focal loss gamma (focusing parameter)")
     dice_weight: float = Field(ge=0, description="Weight applied to dice loss term")
     focal_weight: float = Field(ge=0, description="Weight applied to focal loss term")
     dice_smooth: float = Field(gt=0, description="Epsilon added to dice denominator")
+    dice_reduction: Literal["mean", "sum", "none"] = "mean"
+    focal_reduction: Literal["mean", "sum", "none"] = "mean"
 
     @model_validator(mode="after")
     def at_least_one_loss_active(self) -> "LossConfig":
@@ -42,13 +41,11 @@ class LossConfig(BaseModel):
             raise ValueError("At least one of dice_weight or focal_weight must be > 0")
         return self
 
-
 class DataConfig(BaseModel):
     train_path: str
     val_path: str
     image_size: int = Field(gt=0, description="Spatial size of images after resize")
     augmentation: bool = True
-
 
 class MetricsConfig(BaseModel):
     threshold: float = Field(gt=0, lt=1, description="Sigmoid threshold for binarization")
@@ -59,7 +56,6 @@ class SystemConfig(BaseModel):
     num_workers: int = Field(ge=0)
     checkpoint_dir: str = "checkpoints"
     log_dir: str = "logs"
-
 
 # ---------------------------------------------------------------------------
 # Root config
