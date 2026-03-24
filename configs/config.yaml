@@ -17,10 +17,10 @@ model:
   encoder: resnet34        # resnet18 | resnet34 | resnet50
 
 loss:
-  focal_alpha: 0.75
+  focal_alpha: 0.95
   focal_gamma: 2.0
   dice_weight: 1.0
-  focal_weight: 1.0
+  focal_weight: 0.5
   dice_smooth: 1.0e-6      # epsilon for dice denominator
   dice_reduction: mean
   focal_reduction: mean
