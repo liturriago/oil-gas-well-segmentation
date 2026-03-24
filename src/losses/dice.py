@@ -45,10 +45,10 @@ class DiceLoss(nn.Module):
         loss = 1 - dice_score
 
         if self.reduction == 'mean':
-            return loss.mean(), None
+            return loss.mean()
         elif self.reduction == 'sum':
-            return loss.sum(), None
+            return loss.sum()
         elif self.reduction == 'none':
-            return loss, None
+            return loss
         else:
             raise ValueError(f"Invalid reduction: {self.reduction}")

@@ -42,8 +42,6 @@ def validate_one_epoch(
     model.eval()
     accumulator = MetricAccumulator()
     total_loss = 0.0
-    total_focal = 0.0
-    total_dice = 0.0
     num_batches = 0
 
     pbar = tqdm(loader, desc=f"[Val]   Epoch {epoch}")
@@ -55,10 +53,10 @@ def validate_one_epoch(
         if use_amp:
             with autocast('cuda'):
                 logits = model(images)
-                loss, components = criterion(logits,masks)
+                loss = criterion(logits,masks)
         else:
             logits = model(images)
-            loss, components = criterion(logits,masks)
+            loss = criterion(logits,masks)
 
         batch_metrics = compute_segmentation_metrics(
             logits, masks, threshold=metric_threshold
@@ -66,9 +64,6 @@ def validate_one_epoch(
         accumulator.update(batch_metrics)
 
         total_loss += loss.item()
-        if cfg.loss.loss_type == "combined":
-            total_focal += components["focal"].item()
-            total_dice += components["dice"].item()
         num_batches += 1
 
         pbar.set_postfix(
@@ -78,8 +73,5 @@ def validate_one_epoch(
 
     results = accumulator.compute()
     results["loss"] = total_loss / max(num_batches, 1)
-    if cfg.loss.loss_type == "combined":
-        results["loss_focal"] = total_focal / max(num_batches, 1)
-        results["loss_dice"] = total_dice / max(num_batches, 1)
 
     return results

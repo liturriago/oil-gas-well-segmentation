@@ -60,11 +60,11 @@ class FocalLoss(nn.Module):
             loss = alpha_t * loss
 
         if self.reduction == "none":
-            return loss, None
+            return loss
         elif self.reduction == "mean":
-            return loss.mean(), None
+            return loss.mean()
         elif self.reduction == "sum":
-            return loss.sum(), None
+            return loss.sum()
         else:
             raise ValueError(
                 f"Invalid value for arg 'reduction': '{self.reduction}'. Supported: 'none', 'mean', 'sum'."

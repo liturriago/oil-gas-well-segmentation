@@ -44,8 +44,6 @@ def train_one_epoch(
     model.train()
     accumulator = MetricAccumulator()
     total_loss = 0.0
-    total_focal = 0.0
-    total_dice = 0.0
     num_batches = 0
 
     pbar = tqdm(loader, desc=f"[Train] Epoch {epoch}")
@@ -61,14 +59,14 @@ def train_one_epoch(
                 raise RuntimeError("AMP is enabled but scaler is not initialized.")
             with autocast('cuda'):
                 logits = model(images)
-                loss, components = criterion(logits,masks)
+                loss = criterion(logits,masks)
             if not torch.isnan(loss):
                 scaler.scale(loss).backward()
                 scaler.step(optimizer)
                 scaler.update()
         else:
             logits = model(images)
-            loss, components = criterion(logits,masks)
+            loss = criterion(logits,masks)
             if not torch.isnan(loss):
                 loss.backward()
                 optimizer.step()
@@ -82,9 +80,6 @@ def train_one_epoch(
 
         loss_val = loss.detach().item()
         total_loss += loss_val
-        if cfg.loss.loss_type == "combined":
-            total_focal += components["focal"].detach().item()
-            total_dice += components["dice"].detach().item()
         num_batches += 1
 
         pbar.set_postfix(
@@ -94,9 +89,6 @@ def train_one_epoch(
 
     results = accumulator.compute()
     results["loss"] = total_loss / max(num_batches, 1)
-    if cfg.loss.loss_type == "combined":
-        results["loss_focal"] = total_focal / max(num_batches, 1)
-        results["loss_dice"] = total_dice / max(num_batches, 1)
     results["num_batches"] = num_batches
 
     return results

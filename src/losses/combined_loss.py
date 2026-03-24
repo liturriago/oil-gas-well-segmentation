@@ -47,23 +47,17 @@ class CombinedLoss(nn.Module):
 
     def forward(
         self, logits: torch.Tensor, targets: torch.Tensor
-    ) -> tuple[torch.Tensor, dict[str, torch.Tensor]]:
+    ) -> torch.Tensor:
 
         focal = self.focal_loss(logits,targets)
         dice = self.dice_loss(logits,targets)
 
         total = self.focal_weight * focal + self.dice_weight * dice
 
-        components = {
-            "focal": focal.detach(),
-            "dice": dice.detach(),
-            "total": total.detach(),
-        }
-
         if torch.isnan(total):
             print("🚨 NaN detected in loss!")
             print("logits:", logits.min().item(), logits.max().item())
             print("targets:", targets.min().item(), targets.max().item())
 
-        return total, components
+        return total
 
