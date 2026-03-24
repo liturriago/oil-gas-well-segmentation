@@ -2,7 +2,7 @@
 Training loop: train_one_epoch.
 
 Supports:
-  - Mixed Precision Training (AMP) via torch.cuda.amp
+  - Mixed Precision Training (AMP) via torch.amp
   - Gradient clipping
   - Per-batch metric collection
   - All-reduce loss aggregation across DDP ranks
@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import torch
 import torch.nn as nn
-from torch.cuda.amp import GradScaler, autocast
+from torch.amp import GradScaler, autocast
 from tqdm import tqdm
 
 from src.engine.ddp_utils import is_main_process, reduce_tensor
@@ -66,7 +66,7 @@ def train_one_epoch(
         optimizer.zero_grad(set_to_none=True)
 
         # -------- Forward (with optional AMP) --------
-        with autocast(enabled=use_amp):
+        with autocast("cuda", enabled=use_amp):
             logits: torch.Tensor = model(images)           # (N, 1, H, W) logits
             loss, components = criterion(logits, masks)
 

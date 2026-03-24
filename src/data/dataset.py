@@ -175,7 +175,12 @@ def build_dataset(
     """
     decoder = _make_sample_decoder(image_size, augmentation, training)
 
-    dataset = wds.WebDataset(shard_path, nodesplitter=wds.split_by_node)
+    dataset = wds.WebDataset(
+        shard_path,
+        nodesplitter=wds.split_by_node,
+        shardshuffle=False,   # we handle shuffling ourselves via .shuffle()
+        empty_check=False,    # disable the "no samples" check that trips with
+    )                         # single-shard + multi-worker DDP setups
 
     if training:
         # Shuffle before decode: more efficient (bytes shuffled, not arrays)

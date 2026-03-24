@@ -20,7 +20,7 @@ from omegaconf import DictConfig, OmegaConf
 import hydra
 import torch
 import torch.nn as nn
-from torch.cuda.amp import GradScaler
+from torch.amp import GradScaler
 
 from src.config.schema import validate_config, Config
 from src.data.dataloader import build_dataloader
@@ -130,7 +130,7 @@ def _run(cfg: Config) -> None:
 
     # ------------------------------------------------------------------ AMP Scaler
     scaler: GradScaler | None = (
-        GradScaler() if cfg.training.use_amp and torch.cuda.is_available() else None
+        GradScaler("cuda") if cfg.training.use_amp and torch.cuda.is_available() else None
     )
 
     # ------------------------------------------------------------------ DataLoaders

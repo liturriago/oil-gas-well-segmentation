@@ -33,9 +33,13 @@ def setup_ddp(rank: int, world_size: int, seed: int = 42) -> None:
         seed:       Base random seed; per-rank offset is added automatically.
     """
     backend = "nccl" if torch.cuda.is_available() else "gloo"
-    dist.init_process_group(backend=backend, rank=rank, world_size=world_size)
-
-    torch.cuda.set_device(rank)
+    torch.cuda.set_device(rank)   # must be set before init_process_group
+    dist.init_process_group(
+        backend=backend,
+        rank=rank,
+        world_size=world_size,
+        device_id=torch.device(f"cuda:{rank}") if torch.cuda.is_available() else None,
+    )
 
     # Reproducibility: offset seed per rank so ranks explore different samples
     _set_seed(seed + rank)

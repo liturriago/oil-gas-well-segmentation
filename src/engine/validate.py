@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import torch
 import torch.nn as nn
-from torch.cuda.amp import autocast
+from torch.amp import autocast
 from tqdm import tqdm
 
 from src.engine.ddp_utils import is_main_process
@@ -35,7 +35,7 @@ def validate_one_epoch(
         criterion:        Combined Focal+Dice loss.
         device:           Target device for tensors.
         epoch:            Current epoch index (for logging).
-        use_amp:          Enable ``torch.cuda.amp.autocast``.
+        use_amp:          Enable ``torch.amp.autocast``.
         metric_threshold: Threshold for binarising predictions.
 
     Returns:
@@ -54,7 +54,7 @@ def validate_one_epoch(
         images: torch.Tensor = batch["image"].to(device, non_blocking=True)
         masks: torch.Tensor = batch["mask"].to(device, non_blocking=True)
 
-        with autocast(enabled=use_amp):
+        with autocast("cuda", enabled=use_amp):
             logits: torch.Tensor = model(images)
             loss, components = criterion(logits, masks)
 
