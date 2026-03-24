@@ -91,8 +91,9 @@ def train_one_epoch(
 
     results = accumulator.compute()
     results["loss"] = total_loss / max(num_batches, 1)
-    results["loss_focal"] = total_focal / max(num_batches, 1)
-    results["loss_dice"] = total_dice / max(num_batches, 1)
+    if cfg.loss.loss_type == "combined":
+        results["loss_focal"] = total_focal / max(num_batches, 1)
+        results["loss_dice"] = total_dice / max(num_batches, 1)
     results["num_batches"] = num_batches
 
     return results

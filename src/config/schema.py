@@ -27,6 +27,7 @@ class ModelConfig(BaseModel):
     encoder: Literal["resnet18", "resnet34", "resnet50"] = "resnet34"
 
 class LossConfig(BaseModel):
+    loss_type: Literal["combined", "focal", "dice"] = "focal"
     focal_alpha: float = Field(gt=0, le=1, description="Focal loss alpha (class weighting)")
     focal_gamma: float = Field(ge=0, description="Focal loss gamma (focusing parameter)")
     dice_weight: float = Field(ge=0, description="Weight applied to dice loss term")

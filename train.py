@@ -24,12 +24,13 @@ from src.data.dataloader import build_dataloader
 from src.engine.train import train_one_epoch
 from src.engine.validate import validate_one_epoch
 from src.losses.combined_loss import CombinedLoss
+from src.losses.focal_loss import FocalLoss
+from src.losses.dice_loss import DiceLoss
 from src.models.resunet import ResUNet
 from src.utils.checkpoint import CheckpointManager
 from src.utils.logger import get_logger, log_epoch
 
 _logger = get_logger(__name__)
-
 
 # ---------------------------------------------------------------------------
 # Seed
@@ -94,15 +95,29 @@ def _run(cfg: Config) -> None:
     ).to(device)
 
     # ------------------------------------------------------------------ Loss
-    criterion = CombinedLoss(
-        focal_alpha=cfg.loss.focal_alpha,
-        focal_gamma=cfg.loss.focal_gamma,
-        dice_weight=cfg.loss.dice_weight,
-        focal_weight=cfg.loss.focal_weight,
-        dice_smooth=cfg.loss.dice_smooth,
-        dice_reduction=cfg.loss.dice_reduction,
-        focal_reduction=cfg.loss.focal_reduction,
-    )
+    if cfg.loss.loss_type == "combined":
+        criterion = CombinedLoss(
+            focal_alpha=cfg.loss.focal_alpha,
+            focal_gamma=cfg.loss.focal_gamma,
+            dice_weight=cfg.loss.dice_weight,
+            focal_weight=cfg.loss.focal_weight,
+            dice_smooth=cfg.loss.dice_smooth,
+            dice_reduction=cfg.loss.dice_reduction,
+            focal_reduction=cfg.loss.focal_reduction,
+        )
+    elif cfg.loss.loss_type == "focal":
+        criterion = FocalLoss(
+            alpha=cfg.loss.focal_alpha,
+            gamma=cfg.loss.focal_gamma,
+            reduction=cfg.loss.focal_reduction,
+        )
+    elif cfg.loss.loss_type == "dice":
+        criterion = DiceLoss(
+            smooth=cfg.loss.dice_smooth,
+            reduction=cfg.loss.dice_reduction,
+        )
+    else:
+        raise ValueError(f"Unknown loss type: {cfg.loss.loss_type!r}")
 
     # ------------------------------------------------------------------ Optimizer & Schedulers
     optimizer = _build_optimizer(model.parameters(), cfg)
@@ -170,7 +185,7 @@ def _run(cfg: Config) -> None:
 
         # ---- Logging & Checkpointing ----
         log_epoch(epoch, cfg.training.epochs, train_metrics, val_metrics, current_lr)
-        ckpt_manager.save(epoch, model, optimizer, main_sched, val_metrics)
+    ckpt_manager.save(epoch, model, optimizer, main_sched, val_metrics)
 
 
 # ---------------------------------------------------------------------------
