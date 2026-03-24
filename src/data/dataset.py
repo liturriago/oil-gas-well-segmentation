@@ -13,6 +13,7 @@ class SegmentationDataset:
         shard_path: str,
         image_size: int = 256,
         augmentation: bool = False,
+        shuffle: bool = False,
     ):
         self.shard_path = shard_path
         self.image_size = image_size
@@ -29,7 +30,11 @@ class SegmentationDataset:
             interpolation=InterpolationMode.NEAREST,
         )
 
-        self.dataset = wds.WebDataset(shard_path).decode().map(self.preprocess)
+        dataset = wds.WebDataset(shard_path)
+        if shuffle:
+            dataset = dataset.shuffle(1000)
+            
+        self.dataset = dataset.decode().map(self.preprocess)
 
     def normalize_per_channel(self, image: np.ndarray) -> np.ndarray:
         """

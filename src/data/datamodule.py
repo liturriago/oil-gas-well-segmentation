@@ -28,27 +28,20 @@ class SegmentationDataModule(pl.LightningDataModule):
                 shard_path=self.train_path,
                 augmentation=self.augmentation,
                 image_size=self.image_size,
+                shuffle=True,
             )
             self.val_dataset = SegmentationDataset(
-                shard_path=self.val_path, augmentation=False, image_size=self.image_size
+                shard_path=self.val_path, augmentation=False, image_size=self.image_size, shuffle=False
             )
 
     def train_dataloader(self):
-        return DataLoader(
-            self.train_dataset,
+        return self.train_dataset.get_loader(
             batch_size=self.batch_size,
-            shuffle=True,
             num_workers=self.num_workers,
-            pin_memory=True,
-            drop_last=True,
         )
 
     def val_dataloader(self):
-        return DataLoader(
-            self.val_dataset,
+        return self.val_dataset.get_loader(
             batch_size=self.batch_size,
-            shuffle=False,
             num_workers=self.num_workers,
-            pin_memory=True,
-            drop_last=False,
         )
