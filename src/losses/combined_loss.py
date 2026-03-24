@@ -12,6 +12,7 @@ import torch
 import torch.nn as nn
 from src.losses.dice import DiceLoss
 from src.losses.focal import FocalLoss
+from typing import Literal
 
 class CombinedLoss(nn.Module):
     """Weighted sum of Focal Loss and Dice Loss.
