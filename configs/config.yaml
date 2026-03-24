@@ -10,7 +10,7 @@ training:
 
 model:
   name: resunet
-  in_channels: 3
+  in_channels: 4
   out_channels: 1
 
 loss:
@@ -23,6 +23,7 @@ data:
   train_path: data/train
   val_path: data/val
   augmentation: true
+  image_size: 256
 
 metrics:
   threshold: 0.5

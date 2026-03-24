@@ -1,84 +1,88 @@
-import os
-import glob
 from typing import Tuple
 import torch
-from torch.utils.data import Dataset
+import numpy as np
+import webdataset as wds
 import torchvision.transforms.functional as F
-
-# Trying multiple imports since opencv-python-headless may be used
-try:
-    import cv2
-    import numpy as np
-except ImportError:
-    cv2 = None
-    np = None
+import torchvision.transforms as T
+from torchvision.transforms import InterpolationMode
 
 
-class SegmentationDataset(Dataset):
-    def __init__(self, data_path: str, augmentation: bool = False, in_channels: int = 3):
-        self.data_path = data_path
+class SegmentationDataset:
+    def __init__(
+        self,
+        shard_path: str,
+        image_size: int = 256,
+        augmentation: bool = False,
+    ):
+        self.shard_path = shard_path
+        self.image_size = image_size
         self.augmentation = augmentation
-        self.in_channels = in_channels
 
-        # Assuming a structure like: data_path/images/*.png and data_path/masks/*.png
-        self.image_paths = sorted(glob.glob(os.path.join(data_path, "images", "*.*")))
-        self.mask_paths = sorted(glob.glob(os.path.join(data_path, "masks", "*.*")))
+        self.resize_img = T.Resize(
+            (image_size, image_size),
+            interpolation=InterpolationMode.BILINEAR,
+            antialias=True,
+        )
 
-        # If no images found, create dummy mode (useful for testing when data isn't present)
-        self.dummy_mode = len(self.image_paths) == 0
-        if self.dummy_mode:
-            self.length = 100
-        else:
-            self.length = len(self.image_paths)
-            assert len(self.image_paths) == len(
-                self.mask_paths
-            ), "Mismatched images and masks count"
+        self.resize_mask = T.Resize(
+            (image_size, image_size),
+            interpolation=InterpolationMode.NEAREST,
+        )
 
-    def __len__(self) -> int:
-        return self.length
+        self.dataset = (
+            wds.WebDataset(shard_path)
+            .decode()
+            .map(self.preprocess)
+        )
 
-    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
-        if self.dummy_mode:
-            # Return dummy random tensors for testing
-            img = torch.randn(self.in_channels, 256, 256)
-            mask = torch.randint(0, 2, (1, 256, 256), dtype=torch.float32)
-            return img, mask
+    def normalize_per_channel(self, image: np.ndarray) -> np.ndarray:
+        """
+        Normalización por canal (clave para satélite + NIR)
+        """
+        image = image.astype(np.float32)
 
-        if cv2 is None or np is None:
-            raise RuntimeError(
-                "cv2 and numpy are required. Install with `pip install opencv-python-headless numpy`"
-            )
+        for c in range(image.shape[2]):
+            ch = image[:, :, c]
+            ch_min = ch.min()
+            ch_max = ch.max()
+            image[:, :, c] = (ch - ch_min) / (ch_max - ch_min + 1e-6)
 
-        # Basic loading
-        img = cv2.imread(self.image_paths[idx])
-        if self.in_channels == 3:
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        elif self.in_channels == 1:
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            img = np.expand_dims(img, axis=-1)
+        return image
 
-        mask = cv2.imread(self.mask_paths[idx], cv2.IMREAD_GRAYSCALE)
+    def preprocess(self, sample):
+        image = sample["rgb_nir.npy"]  # (H, W, 4)
+        mask = sample["mask.npy"]      # (H, W)
 
-        # Normalization
-        img = img.astype(np.float32) / 255.0
-        mask = mask.astype(np.float32) / 255.0
+        # Normalización correcta (por canal)
+        image = self.normalize_per_channel(image)
 
-        # Binarize mask
-        mask = (mask > 0.5).astype(np.float32)
+        # To tensor
+        image = torch.from_numpy(image).permute(2, 0, 1)  # (4,H,W)
+        mask = torch.from_numpy(mask).unsqueeze(0)        # (1,H,W)
 
-        # Basic ToTensor conversion (HWC -> CHW)
-        img_tensor = torch.from_numpy(img).permute(2, 0, 1)
-        mask_tensor = torch.from_numpy(mask).unsqueeze(0)
+        # Resize correcto
+        image = self.resize_img(image)
+        mask = self.resize_mask(mask)
 
+        # Binarizar máscara (por seguridad)
+        mask = (mask > 0.5).float()
+
+        # Augmentations consistentes
         if self.augmentation:
-            # Random horizontal flip
             if torch.rand(1) > 0.5:
-                img_tensor = F.hflip(img_tensor)
-                mask_tensor = F.hflip(mask_tensor)
+                image = F.hflip(image)
+                mask = F.hflip(mask)
 
-            # Random vertical flip
             if torch.rand(1) > 0.5:
-                img_tensor = F.vflip(img_tensor)
-                mask_tensor = F.vflip(mask_tensor)
+                image = F.vflip(image)
+                mask = F.vflip(mask)
 
-        return img_tensor, mask_tensor
+        return image, mask
+
+    def get_loader(self, batch_size=8, num_workers=4):
+        return torch.utils.data.DataLoader(
+            self.dataset,
+            batch_size=batch_size,
+            num_workers=num_workers,
+            pin_memory=True,
+        )

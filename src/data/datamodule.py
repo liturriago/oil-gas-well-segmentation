@@ -12,7 +12,7 @@ class SegmentationDataModule(pl.LightningDataModule):
         batch_size: int = 8,
         num_workers: int = 4,
         augmentation: bool = True,
-        in_channels: int = 3,
+        image_size: int = 256,
     ):
         super().__init__()
         self.train_path = train_path
@@ -20,17 +20,17 @@ class SegmentationDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.augmentation = augmentation
-        self.in_channels = in_channels
+        self.image_size = image_size
 
     def setup(self, stage=None):
         if stage == "fit" or stage is None:
             self.train_dataset = SegmentationDataset(
-                data_path=self.train_path,
+                shard_path=self.train_path,
                 augmentation=self.augmentation,
-                in_channels=self.in_channels,
+                image_size=self.image_size,
             )
             self.val_dataset = SegmentationDataset(
-                data_path=self.val_path, augmentation=False, in_channels=self.in_channels
+                shard_path=self.val_path, augmentation=False, image_size=self.image_size
             )
 
     def train_dataloader(self):

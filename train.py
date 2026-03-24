@@ -25,7 +25,7 @@ def main(cfg_dict: DictConfig):
         batch_size=cfg.training.batch_size,
         num_workers=cfg.system.num_workers,
         augmentation=cfg.data.augmentation,
-        in_channels=cfg.model.in_channels,
+        image_size=cfg.data.image_size,
     )
 
     # Initialize LightningModule

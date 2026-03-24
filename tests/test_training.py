@@ -20,10 +20,10 @@ def test_config_loading():
 
 def test_model_forward():
     """Test a simple forward pass through the model to check connectivity."""
-    model = ResUNet(in_channels=3, out_channels=1, backbone_name="resnet18", pretrained=False)
+    model = ResUNet(in_channels=4, out_channels=1, backbone_name="resnet18", pretrained=False)
 
     # 1 batch, 3 channels, 64x64 image
-    dummy_input = torch.randn(2, 3, 64, 64)
+    dummy_input = torch.randn(2, 4, 64, 64)
     out = model(dummy_input)
 
     # Output should have same spatial dimensions
@@ -41,7 +41,7 @@ def test_training_step():
     module = SegmentationModule(cfg)
 
     dummy_batch = (
-        torch.rand((4, 3, 64, 64), dtype=torch.float32),
+        torch.rand((4, 4, 64, 64), dtype=torch.float32),
         torch.randint(0, 2, (4, 64, 64), dtype=torch.float32),
     )
 
