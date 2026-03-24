@@ -29,11 +29,7 @@ class SegmentationDataset:
             interpolation=InterpolationMode.NEAREST,
         )
 
-        self.dataset = (
-            wds.WebDataset(shard_path)
-            .decode()
-            .map(self.preprocess)
-        )
+        self.dataset = wds.WebDataset(shard_path).decode().map(self.preprocess)
 
     def normalize_per_channel(self, image: np.ndarray) -> np.ndarray:
         """
@@ -51,14 +47,14 @@ class SegmentationDataset:
 
     def preprocess(self, sample):
         image = sample["rgb_nir.npy"]  # (H, W, 4)
-        mask = sample["mask.npy"]      # (H, W)
+        mask = sample["mask.npy"]  # (H, W)
 
         # Normalización correcta (por canal)
         image = self.normalize_per_channel(image)
 
         # To tensor
         image = torch.from_numpy(image).permute(2, 0, 1)  # (4,H,W)
-        mask = torch.from_numpy(mask).unsqueeze(0)        # (1,H,W)
+        mask = torch.from_numpy(mask).unsqueeze(0)  # (1,H,W)
 
         # Resize correcto
         image = self.resize_img(image)
