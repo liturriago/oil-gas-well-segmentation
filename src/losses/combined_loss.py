@@ -22,6 +22,8 @@ class CombinedLoss(nn.Module):
         dice_weight:  Scalar weight for the dice loss term.
         focal_weight: Scalar weight for the focal loss term.
         dice_smooth:  Epsilon for dice denominator (numerical stability).
+        dice_reduction: 'mean' | 'sum' | 'none'
+        focal_reduction: 'mean' | 'sum' | 'none'
     """
 
     def __init__(
@@ -31,14 +33,16 @@ class CombinedLoss(nn.Module):
         dice_weight: float = 1.0,
         focal_weight: float = 1.0,
         dice_smooth: float = 1e-6,
+        dice_reduction: Literal["mean", "sum", "none"] = "mean",
+        focal_reduction: Literal["mean", "sum", "none"] = "mean",
     ) -> None:
         super().__init__()
         self.focal_alpha = focal_alpha
         self.focal_gamma = focal_gamma
         self.dice_weight = dice_weight
         self.focal_weight = focal_weight
-        self.dice_loss = DiceLoss(smooth=dice_smooth)
-        self.focal_loss = FocalLoss(alpha=focal_alpha, gamma=focal_gamma)
+        self.dice_loss = DiceLoss(smooth=dice_smooth, reduction=dice_reduction)
+        self.focal_loss = FocalLoss(alpha=focal_alpha, gamma=focal_gamma, reduction=focal_reduction)
 
     def forward(
         self, logits: torch.Tensor, targets: torch.Tensor

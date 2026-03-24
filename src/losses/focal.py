@@ -12,7 +12,7 @@ class FocalLoss(nn.Module):
     Args:
         alpha (float): Weighting factor for the rare class (default: 0.25).
         gamma (float): Focusing parameter to minimize easy examples (default: 2).
-        reduction (str): Specifies the reduction to apply to the output: 'none' | 'mean' | 'sum' (default: 'none').
+        reduction (str): Specifies the reduction to apply to the output: 'none' | 'mean' | 'sum' (default: 'mean').
 
     Inputs:
         inputs (torch.Tensor): Logits tensor of shape (N, C, ...) or (N, ...).
@@ -25,7 +25,7 @@ class FocalLoss(nn.Module):
         self,
         alpha: float = 0.25,
         gamma: float = 2.0,
-        reduction: str = 'none'
+        reduction: str = 'mean'
     ) -> None:
         super().__init__()
         self.alpha = alpha
