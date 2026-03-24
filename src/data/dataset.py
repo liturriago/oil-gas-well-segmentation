@@ -30,7 +30,7 @@ class SegmentationDataset:
             interpolation=InterpolationMode.NEAREST,
         )
 
-        dataset = wds.WebDataset(shard_path)
+        dataset = wds.WebDataset(shard_path, nodesplitter=wds.split_by_node)
         if shuffle:
             dataset = dataset.shuffle(1000)
 
