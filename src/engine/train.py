@@ -10,12 +10,14 @@ from torch.amp import GradScaler, autocast
 from tqdm import tqdm
 
 from src.losses.combined_loss import CombinedLoss
+from src.losses.focal import FocalLoss
+from src.losses.dice import DiceLoss
 from src.metrics.segmentation_metrics import MetricAccumulator, compute_segmentation_metrics
 
 def train_one_epoch(
     model: nn.Module,
     loader: torch.utils.data.DataLoader,
-    criterion: CombinedLoss,
+    criterion: FocalLoss | DiceLoss | CombinedLoss,
     optimizer: torch.optim.Optimizer,
     device: torch.device,
     scaler: GradScaler | None,
@@ -28,7 +30,7 @@ def train_one_epoch(
     Args:
         model:            The segmentation model.
         loader:           Training DataLoader yielding ``{"image", "mask"}`` dicts.
-        criterion:        Combined Focal+Dice loss.
+        criterion:        Focal, Dice or Combined loss.
         optimizer:        Configured optimizer.
         device:           Target device for tensors.
         scaler:           AMP gradient scaler (``None`` if AMP disabled).

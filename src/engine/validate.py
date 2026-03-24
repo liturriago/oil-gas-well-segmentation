@@ -10,6 +10,8 @@ from torch.amp import autocast
 from tqdm import tqdm
 
 from src.losses.combined_loss import CombinedLoss
+from src.losses.focal import FocalLoss
+from src.losses.dice import DiceLoss
 from src.metrics.segmentation_metrics import MetricAccumulator, compute_segmentation_metrics
 
 
@@ -17,7 +19,7 @@ from src.metrics.segmentation_metrics import MetricAccumulator, compute_segmenta
 def validate_one_epoch(
     model: nn.Module,
     loader: torch.utils.data.DataLoader,
-    criterion: CombinedLoss,
+    criterion: FocalLoss | DiceLoss | CombinedLoss,
     device: torch.device,
     epoch: int = 0,
     use_amp: bool = True,
@@ -28,7 +30,7 @@ def validate_one_epoch(
     Args:
         model:            The segmentation model.
         loader:           Validation DataLoader yielding ``{"image", "mask"}`` dicts.
-        criterion:        Combined Focal+Dice loss.
+        criterion:        Focal, Dice or Combined loss.
         device:           Target device for tensors.
         epoch:            Current epoch index (for logging).
         use_amp:          Enable ``torch.amp.autocast``.

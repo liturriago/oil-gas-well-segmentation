@@ -24,8 +24,8 @@ from src.data.dataloader import build_dataloader
 from src.engine.train import train_one_epoch
 from src.engine.validate import validate_one_epoch
 from src.losses.combined_loss import CombinedLoss
-from src.losses.focal_loss import FocalLoss
-from src.losses.dice_loss import DiceLoss
+from src.losses.focal import FocalLoss
+from src.losses.dice import DiceLoss
 from src.models.resunet import ResUNet
 from src.utils.checkpoint import CheckpointManager
 from src.utils.logger import get_logger, log_epoch
