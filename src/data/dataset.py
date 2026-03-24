@@ -122,7 +122,12 @@ def _make_sample_decoder(
         # 3. uint16 → float32 in [0, 1]
         # ------------------------------------------------------------------
         image = image.astype(np.float32) / _UINT16_MAX   # (H, W, 4), [0, 1]
-        mask = mask.astype(np.int32)                     # (H, W), class indices
+        # Binarize: multi_class_seg_maps has values 0=background, 1+=well type.
+        # The model head is binary (out_channels=1), so collapse all well classes
+        # into a single foreground label. This also prevents focal loss NaN:
+        # sigmoid_focal_loss requires targets in [0, 1]; values > 1 cause the
+        # BCE gradient to scale by the target value, leading to explosion in fp16.
+        mask = (mask > 0).astype(np.int32)               # 0=background, 1=well
 
         # ------------------------------------------------------------------
         # 4. Augment — albumentations applies nearest-neighbour to masks
