@@ -170,8 +170,8 @@ def build_dataset(
     Notes:
         - Shuffle is applied **before** ``.decode()`` so samples are shuffled
           at the compressed-byte level, reducing memory overhead.
-        - ``wds.split_by_node`` handles automatic shard partitioning in DDP
-          without requiring a separate DistributedSampler.
+        - ``nodesplitter=None`` means every process reads all shards (correct
+          behaviour for single-GPU training with one shard file).
     """
     decoder = _make_sample_decoder(image_size, augmentation, training)
 

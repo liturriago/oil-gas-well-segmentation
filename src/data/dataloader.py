@@ -10,6 +10,21 @@ import webdataset as wds
 from src.data.dataset import build_dataset
 
 
+def _collate_fn(samples: list[dict]) -> dict[str, torch.Tensor]:
+    """Stack per-sample dicts into a batched dict of tensors.
+
+    Args:
+        samples: List of dicts with keys ``'image'`` (C, H, W) and
+                 ``'mask'`` (1, H, W).
+
+    Returns:
+        Dict with ``'image'``: (B, C, H, W) and ``'mask'``: (B, 1, H, W).
+    """
+    images = torch.stack([s["image"] for s in samples], dim=0)
+    masks = torch.stack([s["mask"] for s in samples], dim=0)
+    return {"image": images, "mask": masks}
+
+
 def build_dataloader(
     shard_path: str,
     image_size: int,
@@ -23,15 +38,16 @@ def build_dataloader(
 
     Args:
         shard_path:     Path or glob to ``.tar`` / ``.bin`` shards.
-        image_size:     Target spatial resolution.
-        batch_size:     Batch size.
+        image_size:     Target spatial resolution (H == W).
+        batch_size:     Batch size. The last batch may be smaller than this
+                        (``partial=True``).
         num_workers:    Number of DataLoader worker processes.
-        augmentation:   Enable random augmentations (training only).
-        training:       Enables shuffle + augmentations.
-        shuffle_buffer: WebDataset internal shuffle buffer size.
+        augmentation:   Enable random augmentations (ignored when training=False).
+        training:       Enables internal shuffle when *True*.
+        shuffle_buffer: WebDataset shuffle buffer size (samples, not bytes).
 
     Returns:
-        Configured :class:`torch.utils.data.DataLoader`.
+        Configured :class:`wds.WebLoader`.
     """
     dataset = build_dataset(
         shard_path=shard_path,
@@ -45,18 +61,11 @@ def build_dataloader(
 
     loader = wds.WebLoader(
         batched_dataset,
-        batch_size=None,
-        shuffle=False,
+        batch_size=None,              # already batched above
+        shuffle=False,                # shuffle handled by wds internally
         num_workers=num_workers,
         pin_memory=torch.cuda.is_available(),
         persistent_workers=num_workers > 0,
     )
 
     return loader
-
-
-def _collate_fn(samples: list[dict]) -> dict[str, torch.Tensor]:
-    """Stack per-sample dicts into a batched dict of tensors."""
-    images = torch.stack([s["image"] for s in samples], dim=0)
-    masks = torch.stack([s["mask"] for s in samples], dim=0)
-    return {"image": images, "mask": masks}
