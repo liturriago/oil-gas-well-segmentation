@@ -29,6 +29,7 @@ class DataConfig(BaseModel):
     train_path: str
     val_path: str
     augmentation: bool
+    image_size: int = Field(..., gt=0)
 
 
 class MetricsConfig(BaseModel):
