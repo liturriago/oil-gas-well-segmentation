@@ -66,34 +66,41 @@ class CombinedLoss(nn.Module):
             targets = targets.unsqueeze(1)
         targets = targets.float()
 
-        # -----------------------------
-        # 2. 🔥 Clamp logits (CRÍTICO)
-        # -----------------------------
-        logits = torch.clamp(logits, -self.logit_clamp, self.logit_clamp)
+        with torch.cuda.amp.autocast(enabled=False):
 
-        # -----------------------------
-        # 3. Focal Loss (estable)
-        # -----------------------------
-        probs = torch.sigmoid(logits)
+            logits_fp32 = logits.float()
+            targets_fp32 = targets.float()
 
-        # 🔒 clamp probabilidades (evita log(0))
-        probs = probs.clamp(1e-6, 1.0 - 1e-6)
+            # -----------------------------
+            # 2. 🔥 Clamp logits (CRÍTICO)
+            # -----------------------------
+            logits_fp32 = torch.clamp(logits_fp32, -self.logit_clamp, self.logit_clamp)
 
-        pt = torch.where(targets == 1, probs, 1 - probs)
+            # -----------------------------
+            # 3. Focal Loss (estable)
+            # -----------------------------
+            probs = torch.sigmoid(logits_fp32)
 
-        alpha_t = torch.where(
-            targets == 1,
-            torch.tensor(self.focal_alpha, device=logits.device),
-            torch.tensor(1 - self.focal_alpha, device=logits.device),
-        )
+            # 🔒 clamp probabilidades (evita log(0))
+            probs = probs.clamp(1e-6, 1.0 - 1e-6)
 
-        focal = -alpha_t * (1 - pt) ** self.focal_gamma * torch.log(pt)
-        focal = focal.mean()
+            pt = torch.where(targets_fp32 == 1, probs, 1 - probs)
 
-        # -----------------------------
-        # 4. Dice Loss (ya estable)
-        # -----------------------------
-        dice = self.dice_loss(logits, targets)
+            alpha_t = torch.where(
+                targets_fp32 == 1,
+                torch.tensor(self.focal_alpha),
+                torch.tensor(1 - self.focal_alpha),
+            )
+
+            focal_weight = (1 - pt).pow(self.focal_gamma)
+            focal = -alpha_t * focal_weight * torch.log(pt)
+
+            focal = focal.mean()
+
+            # -----------------------------
+            # 4. Dice Loss (ya estable)
+            # -----------------------------
+            dice = self.dice_loss(logits_fp32, targets_fp32)
 
         # -----------------------------
         # 5. Total
