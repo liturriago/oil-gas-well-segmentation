@@ -65,15 +65,24 @@ class TestCombinedLoss:
 
     def test_weighted_sum(self):
         dw, fw = 2.0, 0.5
-        criterion = CombinedLoss(dice_weight=dw, focal_weight=fw)
+        ds = 1e-6
+        fa = 0.75
+        fg = 2.0
+        criterion = CombinedLoss(
+            dice_weight=dw, 
+            focal_weight=fw, 
+            dice_smooth=ds, 
+            focal_alpha=fa, 
+            focal_gamma=fg
+        )
         logits = torch.randn(2, 1, 16, 16)
         targets = torch.randint(0, 2, (2, 1, 16, 16)).float()
         
         total_loss = criterion(logits, targets)
         
-        # Manually compute
-        dice_loss = DiceLoss()(logits, targets)
-        focal_loss = FocalLoss()(logits, targets)
+        # Manually compute with SAME parameters
+        dice_loss = DiceLoss(smooth=ds)(logits, targets)
+        focal_loss = FocalLoss(alpha=fa, gamma=fg)(logits, targets)
         expected = dw * dice_loss + fw * focal_loss
         
         assert torch.allclose(total_loss, expected, atol=1e-5)
