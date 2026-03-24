@@ -64,8 +64,9 @@ def validate_one_epoch(
         accumulator.update(batch_metrics)
 
         total_loss += loss.item()
-        total_focal += components["focal"].item()
-        total_dice += components["dice"].item()
+        if cfg.loss.loss_type == "combined":
+            total_focal += components["focal"].item()
+            total_dice += components["dice"].item()
         num_batches += 1
 
         pbar.set_postfix(
@@ -75,7 +76,8 @@ def validate_one_epoch(
 
     results = accumulator.compute()
     results["loss"] = total_loss / max(num_batches, 1)
-    results["loss_focal"] = total_focal / max(num_batches, 1)
-    results["loss_dice"] = total_dice / max(num_batches, 1)
+    if cfg.loss.loss_type == "combined":
+        results["loss_focal"] = total_focal / max(num_batches, 1)
+        results["loss_dice"] = total_dice / max(num_batches, 1)
 
     return results

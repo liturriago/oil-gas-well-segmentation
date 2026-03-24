@@ -80,8 +80,9 @@ def train_one_epoch(
 
         loss_val = loss.detach().item()
         total_loss += loss_val
-        total_focal += components["focal"].detach().item()
-        total_dice += components["dice"].detach().item()
+        if cfg.loss.loss_type == "combined":
+            total_focal += components["focal"].detach().item()
+            total_dice += components["dice"].detach().item()
         num_batches += 1
 
         pbar.set_postfix(
