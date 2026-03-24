@@ -11,7 +11,7 @@ training:
   scheduler: cosine        # cosine | step | none
   use_amp: true
   grad_clip: 1.0           # max norm for gradient clipping (0 = disabled)
-  warmup_epochs: 5         # linear warmup before scheduler
+  logit_clamp: 20.0
 
 model:
   in_channels: 4           # RGB + NIR

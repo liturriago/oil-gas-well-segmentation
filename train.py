@@ -68,24 +68,13 @@ def _build_scheduler(
 ) -> torch.optim.lr_scheduler.LRScheduler | None:
     name = cfg.training.scheduler.lower()
     if name == "cosine":
-        t_max = max(1, cfg.training.epochs - cfg.training.warmup_epochs)
+        t_max = max(1, cfg.training.epochs)
         return torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=t_max, eta_min=1e-6)
     if name == "step":
         return torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
     if name == "none":
         return None
     raise ValueError(f"Unknown scheduler: {name!r}")
-
-
-def _build_warmup_scheduler(
-    optimizer: torch.optim.Optimizer, warmup_epochs: int
-) -> torch.optim.lr_scheduler.LRScheduler | None:
-    if warmup_epochs <= 0:
-        return None
-    return torch.optim.lr_scheduler.LinearLR(
-        optimizer, start_factor=1e-3, end_factor=1.0, total_iters=warmup_epochs
-    )
-
 
 # ---------------------------------------------------------------------------
 # Training
@@ -111,11 +100,11 @@ def _run(cfg: Config) -> None:
         dice_weight=cfg.loss.dice_weight,
         focal_weight=cfg.loss.focal_weight,
         dice_smooth=cfg.loss.dice_smooth,
+        logit_clamp=cfg.training.logit_clamp,
     )
 
     # ------------------------------------------------------------------ Optimizer & Schedulers
     optimizer = _build_optimizer(model.parameters(), cfg)
-    warmup_sched = _build_warmup_scheduler(optimizer, cfg.training.warmup_epochs)
     main_sched = _build_scheduler(optimizer, cfg)
 
     # ------------------------------------------------------------------ AMP Scaler
@@ -176,9 +165,7 @@ def _run(cfg: Config) -> None:
         # ---- LR Scheduling ----
         current_lr = optimizer.param_groups[0]["lr"]
         if train_metrics.get("num_batches", 0) > 0:
-            if epoch <= cfg.training.warmup_epochs and warmup_sched is not None:
-                warmup_sched.step()
-            elif main_sched is not None:
+            if main_sched is not None:
                 main_sched.step()
 
         # ---- Logging & Checkpointing ----

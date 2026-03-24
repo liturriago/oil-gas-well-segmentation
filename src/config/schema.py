@@ -25,8 +25,7 @@ class TrainingConfig(BaseModel):
     scheduler: Literal["cosine", "step", "none"] = "cosine"
     use_amp: bool = True
     grad_clip: float = Field(ge=0.0, description="Max gradient norm (0 = disabled)")
-    warmup_epochs: int = Field(ge=0, description="Linear warmup epochs before scheduler")
-
+    logit_clamp: float = Field(ge=0.0, description="Clamp logits to this range [-clamp, clamp] before loss")
 
 class ModelConfig(BaseModel):
     in_channels: int = Field(ge=1, description="Number of input channels (e.g. 4 for RGB+NIR)")
