@@ -141,6 +141,11 @@ def _make_sample_decoder(
         # 5. HWC → CHW tensor
         # ------------------------------------------------------------------
         image_t = torch.from_numpy(image.transpose(2, 0, 1))          # (4, H, W)
+        c13 = image_t[:3, :, :]
+        c4 = image_t[3:, :, :]
+        c13_norm = (c13 - c13.min()) / (c13.max() - c13.min() + 1e-8)
+        c4_norm = (c4 - c4.min()) / (c4.max() - c4.min() + 1e-8)
+        image_t = torch.cat([c13_norm, c4_norm], dim=0)
         mask_t = torch.from_numpy(mask.astype(np.int64)).unsqueeze(0) # (1, H, W)
 
         return {"image": image_t, "mask": mask_t}
