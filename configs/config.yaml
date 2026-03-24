@@ -10,8 +10,6 @@ training:
   optimizer: adam          # adam | sgd | adamw
   scheduler: cosine        # cosine | step | none
   use_amp: true
-  grad_clip: 1.0           # max norm for gradient clipping (0 = disabled)
-  logit_clamp: 10.0
 
 model:
   in_channels: 4           # RGB + NIR

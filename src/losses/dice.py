@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class DICELoss(nn.Module):
+class DiceLoss(nn.Module):
     """
     Dice Loss for binary and multilabel segmentation.
 
