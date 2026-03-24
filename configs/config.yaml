@@ -20,8 +20,8 @@ loss:
   focal_weight: 1.0
 
 data:
-  train_path: data/train
-  val_path: data/val
+  train_path: /kaggle/input/datasets/lucasiturriago/albertawells/train.bin
+  val_path: /kaggle/input/datasets/lucasiturriago/albertawells/val.bin
   augmentation: true
   image_size: 256
 
