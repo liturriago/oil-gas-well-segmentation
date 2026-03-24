@@ -1,18 +1,13 @@
 """
 Validation loop: validate_one_epoch.
-
-No gradients are computed.  Metrics are accumulated over the whole val split
-and returned as a single averaged dict.
 """
 
 from __future__ import annotations
 
 import torch
-import torch.nn as nn
 from torch.amp import autocast
 from tqdm import tqdm
 
-from src.engine.ddp_utils import is_main_process
 from src.losses.combined_loss import CombinedLoss
 from src.metrics.segmentation_metrics import MetricAccumulator, compute_segmentation_metrics
 
@@ -30,7 +25,7 @@ def validate_one_epoch(
     """Run one validation epoch (no gradient computation).
 
     Args:
-        model:            The segmentation model (possibly DDP-wrapped).
+        model:            The segmentation model.
         loader:           Validation DataLoader yielding ``{"image", "mask"}`` dicts.
         criterion:        Combined Focal+Dice loss.
         device:           Target device for tensors.
@@ -48,7 +43,7 @@ def validate_one_epoch(
     total_dice = 0.0
     num_batches = 0
 
-    pbar = tqdm(loader, desc=f"[Val]   Epoch {epoch}", disable=not is_main_process())
+    pbar = tqdm(loader, desc=f"[Val]   Epoch {epoch}")
 
     for batch in pbar:
         images: torch.Tensor = batch["image"].to(device, non_blocking=True)
@@ -68,11 +63,10 @@ def validate_one_epoch(
         total_dice += components["dice"].item()
         num_batches += 1
 
-        if is_main_process():
-            pbar.set_postfix(
-                loss=f"{loss.item():.4f}",
-                dice=f"{batch_metrics.get('dice_macro', 0):.4f}",
-            )
+        pbar.set_postfix(
+            loss=f"{loss.item():.4f}",
+            dice=f"{batch_metrics.get('dice_macro', 0):.4f}",
+        )
 
     results = accumulator.compute()
     results["loss"] = total_loss / max(num_batches, 1)

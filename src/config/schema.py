@@ -24,8 +24,6 @@ class TrainingConfig(BaseModel):
     optimizer: Literal["adam", "sgd", "adamw"] = "adam"
     scheduler: Literal["cosine", "step", "none"] = "cosine"
     use_amp: bool = True
-    use_ddp: bool = True
-    num_gpus: int = Field(ge=1, description="Number of GPUs to use with DDP")
     grad_clip: float = Field(ge=0.0, description="Max gradient norm (0 = disabled)")
     warmup_epochs: int = Field(ge=0, description="Linear warmup epochs before scheduler")
 

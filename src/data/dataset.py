@@ -177,10 +177,10 @@ def build_dataset(
 
     dataset = wds.WebDataset(
         shard_path,
-        nodesplitter=wds.split_by_node,
-        shardshuffle=False,   # we handle shuffling ourselves via .shuffle()
-        empty_check=False,    # disable the "no samples" check that trips with
-    )                         # single-shard + multi-worker DDP setups
+        nodesplitter=None,    # let every GPU read all shards; use N shards (one
+        shardshuffle=False,   # per GPU) for strict partitioning. shuffle() below
+        empty_check=False,    # handles sample-level randomisation.
+    )
 
     if training:
         # Shuffle before decode: more efficient (bytes shuffled, not arrays)
